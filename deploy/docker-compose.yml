@@ -1,0 +1,32 @@
+services:
+  zs.clash:
+    container_name: zs.clash
+    image: registry.cn-hangzhou.aliyuncs.com/coam/zs-clash:latest
+    environment:
+      TZ: Asia/Shanghai
+    # 默认项目启动脚本
+    command: /bin/bash -c "sleep infinity"
+    #command: /bin/bash -c "/app/start.sh; sleep infinity"
+    # 自定义服务启动脚本，需配置 conf/conf.yaml -> mv conf/config-trojan-global.yaml conf/config.yaml
+    #command: /bin/bash -c "/app/bin/clash-linux-amd64 -d /app/conf &> /app/logs/clash.log"
+    env_file:
+      - ${PROJECT_DIR}/deploy/.env
+    networks:
+      - zs_net
+    ports:
+      - 8810:7890
+      - 8809:9090
+    volumes:
+      - ${PROJECT_DIR}/conf:/app/conf
+      - ${PROJECT_DIR}/logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "-v", "localhost", "9090" ]
+      start_period: 15s
+      interval: 10s
+      timeout: 10s
+      retries: 5
+networks:
+  # docker network
+  zs_net:
+    driver: bridge
